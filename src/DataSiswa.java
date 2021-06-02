@@ -3,6 +3,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -22,36 +24,33 @@ public class DataSiswa extends javax.swing.JFrame {
      * Creates new form DataSiswa
      */
     Connection koneksi;
-    public DataSiswa() {
+    public DataSiswa() throws SQLException {
         initComponents();
         koneksi = DatabaseConnection.getConnection("localhost", "3306", "root", "", "db_sekolah");
+        showData();
     }
     DefaultTableModel dtm;
-    public void showData(){
+    public void showData() throws SQLException{
         String[] kolom = {"NO", "NIS", "Nama", "Kelas", "Jurusan"};
-
         dtm = new DefaultTableModel(null, kolom);
         try{
             Statement stmt = koneksi.createStatement();
             String query = "SELECT * FROM t_siswa";
             ResultSet rs = stmt.executeQuery(query);
             int no = 1;
-            while(rs.next()){
+            while (rs.next()){
                 String nis = rs.getString("nis");
                 String nama = rs.getString("nama");
                 String kelas = rs.getString("kelas");
                 String jurusan = rs.getString("jurusan");
-
-                dtm.addRow(new String[] {no + "", nis, nama, kelas, jurusan});
+                
+                dtm.addRow(new String[]{no+"",nis,nama,kelas,jurusan});
                 no++;
             }
-        }
-        catch(SQLException ex){
+        }catch (SQLException ex){
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Terjadi Kesalahan di Query");
         }
         tbl_siswa.setModel(dtm);
-    }
     }
     
 
@@ -74,6 +73,7 @@ public class DataSiswa extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("DATA SISWA");
 
@@ -88,6 +88,11 @@ public class DataSiswa extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tbl_siswa.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbl_siswaMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tbl_siswa);
 
         cmdRefresh.setText("Refresh");
@@ -98,10 +103,20 @@ public class DataSiswa extends javax.swing.JFrame {
         });
 
         cmdTambah.setText("Tambah");
+        cmdTambah.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdTambahActionPerformed(evt);
+            }
+        });
 
         cmdEdit.setText("Ubah");
 
         cmdHapus.setText("Hapus");
+        cmdHapus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmdHapusActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -150,6 +165,34 @@ public class DataSiswa extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_cmdRefreshActionPerformed
 
+    private void cmdTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdTambahActionPerformed
+    ManageData tambahData = new ManageData(this, true);
+    tambahData.setVisible(true);// TODO add your handling code here:
+    }//GEN-LAST:event_cmdTambahActionPerformed
+    int baris;
+    private void tbl_siswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbl_siswaMouseClicked
+    baris = tbl_siswa.getSelectedRow(); // TODO add your handling code here:
+    }//GEN-LAST:event_tbl_siswaMouseClicked
+
+    private void cmdHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdHapusActionPerformed
+    String idWhoWantToBeDelete = tbl_siswa.getValueAt(baris, 0).toString();
+    try{
+        Statement stmt = koneksi.createStatement();
+        String query = "DELETE FROM t_siswa WHERE nis = '"+idWhoWantToBeDelete+";";
+        int berhasil = stmt.executeUpdate(query);
+        if(berhasil == 1){
+            JOptionPane.showMessageDialog(null, "Data Berhasil Dihapus");
+            dtm.getDataVector().removeAllElements();
+            showData();
+        }else{
+            JOptionPane.showMessageDialog(null, "Data Berhasil Dihapus");
+        }
+    }catch(SQLException ex) {
+       ex.printStackTrace();
+    }
+// TODO add your handling code here:
+    }//GEN-LAST:event_cmdHapusActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -180,7 +223,11 @@ public class DataSiswa extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new DataSiswa().setVisible(true);
+                try {
+                    new DataSiswa().setVisible(true);
+                } catch (SQLException ex) {
+                    Logger.getLogger(DataSiswa.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
